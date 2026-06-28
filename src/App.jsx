@@ -6,6 +6,7 @@ import {
   Heart, TrendingUp, Users, Wallet, Sparkle,
   MapPin, Check, ArrowRight, ArrowLeft, Languages, RotateCcw,
   X, Compass, GraduationCap, MoveRight, Sparkles, TrendingDown,
+  Linkedin, Instagram, Youtube, Send,
 } from "lucide-react";
 
 // Bilingual pairs are [uz, en]. Five tracks, each a 4-rung maturity ladder.
@@ -153,6 +154,7 @@ const UI = {
   fbThanks: ["Rahmat! Fikringiz yuborildi.", "Thank you! Your feedback was sent."],
   fbThanksSub: ["Vaqt ajratganingiz uchun minnatdorman.", "I appreciate you taking the time."],
   fbError: ["Xatolik yuz berdi. Qayta urinib ko'ring.", "Something went wrong. Please try again."],
+  madeBy: ["Muallif", "Made by"],
 };
 
 // Web3Forms access key — PUBLIC by design, safe to commit. Submissions are emailed to
@@ -208,6 +210,7 @@ export default function App() {
         .rm-btn{transition:transform .15s ease,background .15s ease,border-color .15s ease} .rm-btn:hover{transform:translateY(-1px)}
         .rm-opt{transition:border-color .15s ease,background .15s ease,transform .15s ease} .rm-opt:hover{transform:translateY(-1px);border-color:${C.dim}}
         .rm-node{transition:transform .15s ease} .rm-node:hover{transform:translateY(-2px)}
+        .rm-soc{transition:color .15s ease,border-color .15s ease,transform .15s ease;color:${C.dim}} .rm-soc:hover{color:${C.current};border-color:${C.current};transform:translateY(-2px)}
         :focus-visible{outline:2px solid ${C.next};outline-offset:2px}
         @media (prefers-reduced-motion:reduce){ .rm-rise,.rm-pin,.rm-sheet{animation:none!important} }
       `}</style>
@@ -228,6 +231,7 @@ export default function App() {
         {screen === "result" && <Result L={L} answers={answers} stats={stats} onOpen={setOpenNode} />}
 
         <Feedback L={L} />
+        <Footer L={L} />
       </div>
 
       {openNode && <NodeSheet L={L} node={openNode} answers={answers} onClose={() => setOpenNode(null)} />}
@@ -629,6 +633,29 @@ function Feedback({ L }) {
         </button>
       </div>
     </form>
+  );
+}
+
+function Footer({ L }) {
+  const socials = [
+    { Icon: Linkedin, url: "https://www.linkedin.com/in/iamdiyorjon/", label: "LinkedIn" },
+    { Icon: Instagram, url: "https://www.instagram.com/diyorjon.allanazarov", label: "Instagram" },
+    { Icon: Youtube, url: "https://www.youtube.com/@diyorjonallanazarov", label: "YouTube" },
+    { Icon: Send, url: "https://t.me/diyorjonblogs", label: "Telegram" },
+  ];
+  return (
+    <footer style={{ marginTop: 28, paddingTop: 22, borderTop: `1px solid ${C.line}`, textAlign: "center" }}>
+      <div className="rm-mono" style={{ fontSize: 10, color: C.dim, letterSpacing: "0.2em" }}>{L(UI.madeBy).toUpperCase()}</div>
+      <div className="rm-display" style={{ fontSize: 16.5, fontWeight: 700, color: C.text, margin: "5px 0 13px" }}>Diyorjon Allanazarov</div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+        {socials.map(({ Icon, url, label }) => (
+          <a key={label} href={url} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="rm-soc"
+            style={{ width: 38, height: 38, borderRadius: 10, display: "grid", placeItems: "center", background: C.panelHi, border: `1px solid ${C.line}` }}>
+            <Icon size={17} />
+          </a>
+        ))}
+      </div>
+    </footer>
   );
 }
 
