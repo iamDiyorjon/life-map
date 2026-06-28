@@ -144,7 +144,21 @@ const UI = {
   strongest: ["Eng kuchli", "Strongest"],
   focusArea: ["E'tibor talab qiladi", "Needs focus"],
   overall: ["Umumiy yo'l bosib o'tilgan", "Overall journey traveled"],
+  fbTitle: ["Fikringiz bormi?", "Have feedback?"],
+  fbLead: ["Taklif yoki fikringizni qoldiring — faqat menga yetib boradi.", "Leave a suggestion or comment — it goes straight to me."],
+  fbPlaceholder: ["Fikringizni yozing...", "Write your feedback..."],
+  fbContact: ["Email yoki Telegram (ixtiyoriy)", "Email or Telegram (optional)"],
+  fbSend: ["Yuborish", "Send"],
+  fbSending: ["Yuborilmoqda...", "Sending..."],
+  fbThanks: ["Rahmat! Fikringiz yuborildi.", "Thank you! Your feedback was sent."],
+  fbThanksSub: ["Vaqt ajratganingiz uchun minnatdorman.", "I appreciate you taking the time."],
+  fbError: ["Xatolik yuz berdi. Qayta urinib ko'ring.", "Something went wrong. Please try again."],
 };
+
+// Web3Forms access key — PUBLIC by design, safe to commit. Submissions are emailed to
+// the address you registered. Get a free key in ~30s at https://web3forms.com
+// (enter the email where you want feedback delivered), then paste it below.
+const WEB3FORMS_KEY = "9ba751f2-84ca-4924-919e-08ee3614eb07";
 
 // Nautical-chart palette
 const C = {
@@ -212,6 +226,8 @@ export default function App() {
         )}
 
         {screen === "result" && <Result L={L} answers={answers} stats={stats} onOpen={setOpenNode} />}
+
+        <Feedback L={L} />
       </div>
 
       {openNode && <NodeSheet L={L} node={openNode} answers={answers} onClose={() => setOpenNode(null)} />}
@@ -545,6 +561,74 @@ function NodeSheet({ L, node, answers, onClose }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function Feedback({ L }) {
+  const [msg, setMsg] = useState("");
+  const [contact, setContact] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | done | error
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!msg.trim() || status === "sending") return;
+    setStatus("sending");
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: "New Life Map feedback",
+          from_name: "Life Map",
+          botcheck: "",
+          message: msg.trim(),
+          contact: contact.trim() || "—",
+        }),
+      });
+      const data = await res.json();
+      setStatus(data.success ? "done" : "error");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "done") {
+    return (
+      <div className="rm-rise" style={{ marginTop: 30, background: C.panel, border: `1px solid ${C.line}`, borderRadius: 18, padding: "26px 20px", textAlign: "center" }}>
+        <span style={{ width: 44, height: 44, borderRadius: 99, background: `${C.next}1f`, display: "inline-grid", placeItems: "center", marginBottom: 12 }}>
+          <Check size={22} color={C.next} strokeWidth={3} />
+        </span>
+        <div style={{ fontSize: 16, fontWeight: 600, color: C.text }}>{L(UI.fbThanks)}</div>
+        <div style={{ fontSize: 13, color: C.dim, marginTop: 5 }}>{L(UI.fbThanksSub)}</div>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="rm-rise" style={{ marginTop: 30, background: C.panel, border: `1px solid ${C.line}`, borderRadius: 18, padding: "20px 18px" }}>
+      <div className="rm-display" style={{ fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+        <Heart size={16} color={C.current} /> {L(UI.fbTitle)}
+      </div>
+      <p style={{ color: C.dim, fontSize: 13, margin: "6px 0 14px" }}>{L(UI.fbLead)}</p>
+
+      <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={3} required placeholder={L(UI.fbPlaceholder)}
+        style={{ width: "100%", boxSizing: "border-box", resize: "vertical", background: C.bg, color: C.text, border: `1.5px solid ${C.line}`, borderRadius: 12, padding: "11px 13px", fontSize: 14, fontFamily: "inherit", lineHeight: 1.5, outline: "none" }} />
+
+      <input value={contact} onChange={(e) => setContact(e.target.value)} type="text" placeholder={L(UI.fbContact)}
+        style={{ width: "100%", boxSizing: "border-box", marginTop: 10, background: C.bg, color: C.text, border: `1.5px solid ${C.line}`, borderRadius: 12, padding: "11px 13px", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
+
+      {status === "error" && (
+        <div style={{ marginTop: 10, fontSize: 13, color: "#F2776B" }}>{L(UI.fbError)}</div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
+        <button type="submit" disabled={!msg.trim() || status === "sending"} className="rm-btn"
+          style={{ ...btn(C), background: !msg.trim() ? C.panelHi : C.current, color: !msg.trim() ? C.dim : C.bg, borderColor: !msg.trim() ? C.line : C.current, cursor: !msg.trim() ? "not-allowed" : "pointer", fontSize: 13.5, fontWeight: 700, padding: "9px 20px" }}>
+          {status === "sending" ? L(UI.fbSending) : L(UI.fbSend)} {status !== "sending" && <ArrowRight size={15} />}
+        </button>
+      </div>
+    </form>
   );
 }
 
